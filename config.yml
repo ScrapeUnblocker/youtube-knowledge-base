@@ -1,0 +1,59 @@
+# youtube-knowledge-base: the one file you edit.
+#
+# Secrets (your ScrapeUnblocker API key, tokens, webhook URLs) never go in this file.
+# They come from environment variables, which on GitHub Actions are repository secrets.
+# Check your edits with:  youtube-knowledge-base check
+
+# The channels to follow: a handle (@name), a channel id (UC...) or a channel URL.
+# A channel can override any rule from `videos` below, add its own tags, or pick
+# another caption language.
+channels:
+  - "@Fireship"
+  - "@3blue1brown"
+  - channel: "@lexfridman"
+    min_minutes: 20        # the full episodes, not the clips
+    tags: [podcast]
+
+videos:
+  per_channel: 15          # newest uploads read per channel each run (one API call per channel)
+  min_minutes: 2           # skip anything shorter: Shorts, teasers, trailers
+  max_minutes: 0           # 0 = no upper limit
+  include: []              # if set, keep only videos whose title or description has one of these
+  exclude: ["#shorts"]     # skip videos whose title has one of these
+  max_age_days: 14         # ignore uploads older than this (0 = no limit)
+  first_run: 2             # first run of a channel: save its 2 newest, remember the rest
+  max_new_per_run: 10      # cap on videos saved per run (one transcript call each); the rest wait
+
+transcript:
+  language: en             # preferred caption language; falls back to the track the video has
+  paragraph_seconds: 60    # captions are folded into paragraphs of about this length
+  wait_hours: 24           # captions can appear hours after an upload; keep checking this long
+
+# Words and phrases to find in every transcript. Each note lists the moments they are
+# said, with links that start the video right there, and the ping shows the first three.
+mentions:
+  - open source
+  - Rust
+  - Postgres
+
+# all      = a chat ping for every saved video
+# mentions = ping only when one of the mentions is said (notes are still saved)
+# off      = no pings, notes only
+ping: all
+
+# Where videos go. A destination listed here switches on once its secret is set;
+# the others are skipped with a note in the log. Obsidian needs no secret.
+destinations:
+  obsidian:
+    folder: vault/YouTube  # one Markdown note per video, in a folder per channel
+    # repo: you/your-vault # write into another GitHub repo instead (VAULT_GITHUB_TOKEN)
+    # branch: main
+  notion: {}               # NOTION_TOKEN + NOTION_DATABASE_ID: one page per video
+  qdrant:                  # QDRANT_URL (+ QDRANT_API_KEY): transcript passages for search/RAG
+    collection: youtube
+    model: BAAI/bge-small-en-v1.5
+    # path: ~/.youtube-kb/qdrant   # a local database instead of a server
+  slack: {}                # SLACK_WEBHOOK_URL
+  discord: {}              # DISCORD_WEBHOOK_URL
+  telegram: {}             # TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID
+  webhook: {}              # WEBHOOK_URL: JSON with the full transcript, for Zapier/Make/n8n
